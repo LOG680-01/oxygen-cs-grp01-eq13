@@ -33,14 +33,14 @@ jobs:
     - name: Static Code Analysis and Formatting
       run:  find . -name "*.py" | xargs black
 
-#     - name: Log in to DockerHub
-#       uses: docker/login-action@v2
-#       with:
-#         username: ${{ secrets.DOCKERHUB_USERNAME }}
-#         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Log in to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-#     - name: Build Docker image
-#       run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/image-name:${{ github.sha }} .
+    - name: Build Docker image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/image-name:${{ github.sha }} .
 
 #     - name: Tag Docker image as latest
 #       run: docker tag ${{ secrets.DOCKERHUB_USERNAME }}/image-name:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/image-name:latest
