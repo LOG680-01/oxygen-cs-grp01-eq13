@@ -20,31 +20,27 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
+        
+    - name: Run unit tests
+      run: pytest
+      
+    - name: Static Code Analysis and Formatting
+      run:  find . -name "*.py" | xargs black
 
     - name: Log in to DockerHub
       run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
       
     - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/image-name:${{ github.sha }} .
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }} .
 
     - name: Tag Docker image as latest
-      run: docker tag ${{ secrets.DOCKERHUB_USERNAME }}/image-name:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/image-name:latest
+      run: docker tag ${{ secrets.DOCKERHUB_USERNAME }}/{{ secrets.IMAGE_NAME }}:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/{{ secrets.IMAGE_NAME }}:latest
 
     - name: Push Docker image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/image-name:latest
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/{{ secrets.IMAGE_NAME }}:latest
       
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pylint black
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
-#     - name: Run unit tests
-#       run: pytest
-      
-#     - name: Static Code Analysis and Formatting
-#       run:  find . -name "*.py" | xargs black
-
-      
-#     - name: Deploy Docker container
-#       run: docker run -d -p 8080:80 ${{ secrets.DOCKERHUB_USERNAME }}/image-name:latest
