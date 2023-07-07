@@ -1,6 +1,6 @@
 import pytest
-from src.main import Main
-from src.exceptions import *
+from src.main import Main, NullTokenException
+
 
 DEFAULT_HOST = 'localhost'
 DEFAULT_TICKETS = 'dummy_tickets'
