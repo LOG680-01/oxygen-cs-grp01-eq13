@@ -5,6 +5,7 @@ import logging
 import requests
 import json
 import time
+import psycopg2
 
 
 class NullTokenException(Exception):
@@ -79,7 +80,6 @@ class Main:
             print(data[0]["date"] + " --> " + data[0]["data"])
             date = data[0]["date"]
             dp = float(data[0]["data"])
-            self.send_temperature_to_fastapi(date, dp)
             self.analyzeDatapoint(date, dp)
         except Exception as err:
             print(err)
@@ -87,17 +87,37 @@ class Main:
     def analyzeDatapoint(self, date, data):
         if float(data) >= float(self.T_MAX):
             self.sendActionToHvac(date, "TurnOnAc", self.TICKETS)
+            action = "TurnOnAc"+ self.TICKETS
+            self.send_temperature_to_database(date, data, action)
         elif float(data) <= float(self.T_MIN):
             self.sendActionToHvac(date, "TurnOnHeater", self.TICKETS)
+            action = "TurnOnHeater"+ self.TICKETS
+            self.send_temperature_to_database(date, data, action)
 
     def sendActionToHvac(self, date, action, nbTick):
         r = requests.get(f"http://{self.HOST}/api/hvac/{self.TOKEN}/{action}/{nbTick}")
         details = json.loads(r.text)
         print(details)
 
-    def send_temperature_to_fastapi(self, date, dp):
-        # to implement
-        pass
+    def send_temperature_to_database(self, date, dp, action):
+        try:
+            connection = psycopg2.connect(
+                host=DEFAULT_DATABASE_HOST, database=DEFAULT_DATABASE, user=DEFAULT_DATABASE_USER, password=DEFAULT_DATABASE_PASSWORD
+            )
+
+            cursor = connection.cursor()
+            query = "INSERT INTO sensor_data (datetime, temp, action) VALUES (%s, %s, %s)"
+            
+            data_to_insert = (date, dp, action)
+            cursor.execute(query, data_to_insert)
+
+            connection.commit()
+            cursor.close()
+            connection.close()
+            print("Data inserted")
+            
+        except (Exception, psycopg2.Error) as error:
+            print("Error while connecting to PostgreSQL or inserting data:", error)
 
     def send_event_to_database(self, timestamp, event):
         try:
